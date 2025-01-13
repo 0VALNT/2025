@@ -1,0 +1,30 @@
+{% load rest_framework %}
+
+<html>
+<body>
+
+{{user.username}}
+<form method="POST">
+    {% csrf_token %}
+    {% for question in survey.questions.all %}
+    {{question.title}}<br>
+    {% if question.type == 'int' %}
+    <input {% if question.necessarily %}required{% endif %} type="number" step="any" name="{{question.id}}" >
+    {% elif question.type == 'string' %}
+
+    <input {% if question.necessarily %} required {% endif %} type="text" name="{{question.id}}" >
+    {% elif question.type == 'choices' or question.type == 'multiple_choice' %}
+    <select {% if question.type == 'multiple_choice' %} multiple{% endif %} name="{{question.id}}" id="answer-select" {% if question.necessarily %} required {% endif %} >
+                    {% for answer in question.answers.all %}
+                    <option value="{{answer.id}}">{{answer}}</option>
+                    {% endfor %}
+                </select>
+
+                {% endif %}
+                <hr>
+                {% endfor %}
+                <input type="submit" value="Отправить">
+</form>
+
+</body>
+</html>
