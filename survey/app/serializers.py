@@ -42,7 +42,7 @@ class UserAnswersSerializer(serializers.Serializer):
 class UserAnswerSerializer(serializers.Serializer):
     user_answers = serializers.PrimaryKeyRelatedField(queryset=UserAnswers.objects.all())
     question = serializers.PrimaryKeyRelatedField(queryset=Question.objects.all())
-
+    answer = serializers.CharField(max_length=256)
     class Meta:
         model = UserAnswer
         fields = ['user_answers', 'question', 'answer']

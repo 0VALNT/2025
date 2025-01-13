@@ -21,7 +21,8 @@ class Question(models.Model):
 
 class Survey(models.Model):
     questions = models.ManyToManyField(Question)
-
+    past_users = models.ManyToManyField(User)
+    one_attempt = models.BooleanField(default=True)
 
 class UserAnswer(models.Model):
     user_answers = models.ForeignKey('UserAnswers', on_delete=models.CASCADE)
