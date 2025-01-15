@@ -3,10 +3,10 @@ from django.contrib.auth.models import User
 from .models import UserAnswer, Answer, Question, Survey, UserAnswers
 
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['url', 'username', 'email', 'is_staff']
+        fields = ['username', 'email']
 
 
 class AnswerSerializer(serializers.Serializer):
@@ -43,6 +43,7 @@ class UserAnswerSerializer(serializers.Serializer):
     user_answers = serializers.PrimaryKeyRelatedField(queryset=UserAnswers.objects.all())
     question = serializers.PrimaryKeyRelatedField(queryset=Question.objects.all())
     answer = serializers.CharField(max_length=256)
+
     class Meta:
         model = UserAnswer
         fields = ['user_answers', 'question', 'answer']

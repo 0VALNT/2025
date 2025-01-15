@@ -1,13 +1,14 @@
+from rest_framework import status, generics
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
-
 from .models import Survey, Answer
 from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.views import APIView
 from . import serializers
 from django.http import HttpResponse
+from django.contrib.auth.models import User
 
 
 class ProtectedViews(APIView):
@@ -16,7 +17,6 @@ class ProtectedViews(APIView):
         if token:
             try:
                 validated_token = JWTAuthentication().get_validated_token(token)
-                print('asd')
                 user = JWTAuthentication().get_user(validated_token)
                 request.user = user
             except Exception as e:
@@ -33,7 +33,6 @@ class SeeMyForm(APIView):
         if token:
             try:
                 validated_token = JWTAuthentication().get_validated_token(token)
-                print('asd')
                 user = JWTAuthentication().get_user(validated_token)
                 request.user = user
             except Exception as e:
@@ -50,7 +49,6 @@ class SeeMyForm(APIView):
         if token:
             try:
                 validated_token = JWTAuthentication().get_validated_token(token)
-                print('asd')
                 user = JWTAuthentication().get_user(validated_token)
                 request.user = user
             except Exception as e:
@@ -68,7 +66,6 @@ class SeeMyForm(APIView):
             'survey': survey.id,
         })
         if serializer.is_valid():
-            print('True')
             obj = serializer.save()
             obj.save()
         else:
@@ -79,12 +76,9 @@ class SeeMyForm(APIView):
                 answer = Answer.objects.get(id=int(request.POST[f'{question.id}'])).title
             elif question.type == 'multiple_choice':
                 answers = post.getlist(f'{question.id}')
-                print(answers)
                 answer = ''
                 for i in answers:
-                    print(i)
                     answer += Answer.objects.get(id=int(i)).title + ' '
-                print(answer)
             else:
                 answer = request.POST[f'{question.id}']
             serializer = serializers.UserAnswerSerializer(data={
@@ -93,8 +87,20 @@ class SeeMyForm(APIView):
                 'user_answers': obj.id
             })
             if serializer.is_valid():
-                print('True')
                 objec = serializer.save()
                 objec.save()
         survey.past_users.add(user)
         return HttpResponse('ads')
+
+
+class Profile(APIView):
+    def get(self, request, token):
+        if token:
+            try:
+                validated_token = JWTAuthentication().get_validated_token(token)
+                user = JWTAuthentication().get_user(validated_token)
+                request.user = user
+            except Exception as e:
+                raise AuthenticationFailed('Invalid token')
+            serializer = serializers.UserSerializer(user, context={'request': request})
+            return Response(serializer.data)
