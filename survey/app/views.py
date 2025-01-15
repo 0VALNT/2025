@@ -1,20 +1,43 @@
-from django.shortcuts import render
-from rest_framework import routers, viewsets
+from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .models import Survey, Question, Answer
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
+from .models import Survey, Answer
 from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.views import APIView
 from . import serializers
 from django.http import HttpResponse
 
 
+class ProtectedViews(APIView):
+
+    def get(self, request, token=None):
+        if token:
+            try:
+                validated_token = JWTAuthentication().get_validated_token(token)
+                print('asd')
+                user = JWTAuthentication().get_user(validated_token)
+                request.user = user
+            except Exception as e:
+                raise AuthenticationFailed('Invalid token')
+
+        return Response({"message": "This is a protected view!", "user": str(request.user)})
+
+
 class SeeMyForm(APIView):
-    permission_classes = [IsAuthenticated]
     renderer_classes = [TemplateHTMLRenderer]
     template_name = 'form.html'
 
-    def get(self, request, pk):
+    def get(self, request, pk, token=None):
+        if token:
+            try:
+                validated_token = JWTAuthentication().get_validated_token(token)
+                print('asd')
+                user = JWTAuthentication().get_user(validated_token)
+                request.user = user
+            except Exception as e:
+                raise AuthenticationFailed('Invalid token')
         try:
             survey = Survey.objects.get(id=pk)
         except:
@@ -23,7 +46,15 @@ class SeeMyForm(APIView):
             return HttpResponse('Ты уже прошел эту форму')
         return Response({'survey': survey})
 
-    def post(self, request, pk):
+    def post(self, request, pk, token):
+        if token:
+            try:
+                validated_token = JWTAuthentication().get_validated_token(token)
+                print('asd')
+                user = JWTAuthentication().get_user(validated_token)
+                request.user = user
+            except Exception as e:
+                raise AuthenticationFailed('Invalid token')
         try:
             survey = Survey.objects.get(id=pk)
         except:
