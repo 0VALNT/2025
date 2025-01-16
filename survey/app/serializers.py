@@ -1,6 +1,6 @@
 from rest_framework import routers, serializers, viewsets
 from django.contrib.auth.models import User
-from .models import UserAnswer, Answer, Question, Survey, UserAnswers, SomeModel
+from .models import UserAnswer, Answer, Question, Survey, UserAnswers, SomeModel, Category
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -27,10 +27,11 @@ class QuestionSerializer(serializers.Serializer):
         fields = ['title', 'type', 'necessarily', 'answers']
 
 
-class SurveySerializer(serializers.Serializer):
+class SurveySerializer(serializers.ModelSerializer):
+    category = serializers.PrimaryKeyRelatedField(many=True, queryset=Category.objects.all())
     class Meta:
         model = Survey
-        fields = ['questions', ]
+        fields = '__all__'
 
 
 class UserAnswersSerializer(serializers.Serializer):

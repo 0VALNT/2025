@@ -1,13 +1,16 @@
 from django.shortcuts import redirect
 from rest_framework import status, generics
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.generics import UpdateAPIView
+from rest_framework.generics import UpdateAPIView, ListCreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework import viewsets
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from django_filters import rest_framework as filters
 
+from .filters import SurveyFilter
 from .models import Survey, Answer, SomeModel
 from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.views import APIView
@@ -164,6 +167,15 @@ class SomeView(APIView):
         return Response({"post": serializer.data})
 
 
+class SomeList(ListCreateAPIView):
+    queryset = SomeModel.objects.all()
+    serializer_class = serializers.SomeModelSerializer
+    filter_fields = (
+        'email',
+        'username',
+    )
+
+
 class ChangePasswordView(UpdateAPIView):
     serializer_class = serializers.ChangePasswordSerializer
     model = User
@@ -193,3 +205,10 @@ class ChangePasswordView(UpdateAPIView):
             }
             return Response(response)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SurveyViewSet(viewsets.ModelViewSet):
+    queryset = Survey.objects.all()
+    serializer_class = serializers.SurveySerializer
+    filter_backends = [filters.DjangoFilterBackend]
+    filterset_class = SurveyFilter
