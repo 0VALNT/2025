@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Question, Survey, Answer, UserAnswers, UserAnswer, Category
+from .models import Question, Survey, Answer, UserAnswers, UserAnswer, Category, SomeModel
 
 admin.site.register(Question)
 
@@ -12,4 +12,5 @@ admin.site.register(Survey, SurveyAdmin)
 admin.site.register(Answer)
 admin.site.register(UserAnswers)
 admin.site.register(UserAnswer)
+admin.site.register(SomeModel)
 admin.site.register(Category)

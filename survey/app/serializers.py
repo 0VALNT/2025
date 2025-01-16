@@ -1,12 +1,18 @@
 from rest_framework import routers, serializers, viewsets
 from django.contrib.auth.models import User
-from .models import UserAnswer, Answer, Question, Survey, UserAnswers
+from .models import UserAnswer, Answer, Question, Survey, UserAnswers, SomeModel
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username', 'email']
+
+    def update(self, instance, validated_data):
+        instance.username = validated_data.get("username", instance.username)
+        instance.email = validated_data.get("email", instance.email)
+        instance.save()
+        return instance
 
 
 class AnswerSerializer(serializers.Serializer):
@@ -50,3 +56,21 @@ class UserAnswerSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         return UserAnswer(**validated_data)
+
+
+class SomeModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SomeModel
+        fields = ['username', 'email']
+
+    def update(self, instance, validated_data):
+        instance.username = validated_data.get("username", instance.username)
+        instance.email = validated_data.get("email", instance.email)
+        instance.save()
+        return instance
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    model = User
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)

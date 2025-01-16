@@ -61,3 +61,8 @@ class UserAnswers(models.Model):
 
     def __str__(self):
         return f'{self.user} ({self.survey})'
+
+
+class SomeModel(models.Model):
+    username = models.CharField(max_length=32)
+    email = models.EmailField(max_length=32)
