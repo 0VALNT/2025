@@ -114,6 +114,7 @@ class AdminStrQuestionSurveyData(models.Model):
     def __str__(self):
         return f'Средняя длина ответа: {self.amount / self.count}'
 
+
 class CountOfAnswers(models.Model):
     answer = models.ForeignKey('Answer', on_delete=models.CASCADE)
     count_of_answer = models.PositiveIntegerField(default=0)
