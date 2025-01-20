@@ -14,7 +14,7 @@ from django_filters import rest_framework as filters
 from django.core.mail import send_mail
 from .filters import SurveyFilter
 from .models import Survey, Answer, SomeModel, AdminSurveyData, AdminStrQuestionSurveyData, \
-    AdminChoseQuestionSurveyData, AdminIntQuestionSurveyData, CountOfAnswers
+    AdminChoseQuestionSurveyData, AdminIntQuestionSurveyData, CountOfAnswers, UserAnswers, UserAnswer
 from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.views import APIView
 from . import serializers
@@ -113,6 +113,9 @@ class SeeMyForm(APIView):
             return 0
         post = request.POST
         data = AdminSurveyData.objects.get(survey_id=survey.id)
+        data.num_of_pass += 1
+        data.count_of_question = len(survey.questions.all())
+        data.save()
         for question in survey.questions.all():
             if question.type == 'choices':
                 answer = Answer.objects.get(id=int(request.POST[f'{question.id}']))
@@ -158,7 +161,6 @@ class SeeMyForm(APIView):
                         model = CountOfAnswers(answer_id=answer.id, count_of_answer=1)
                         new = True
                     model.save()
-
                     if new:
                         question_data.help_model.add(model.id)
                         question_data.save()
@@ -409,6 +411,76 @@ class GenerateCsvView(APIView):
                     "-",
                     str(chose_question_data)
 
+                ])
+
+        return response
+
+
+class GenerateExcelUserAnswersView(APIView):
+    def get(self, request):
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = 'User Answers Data'
+
+        header_font = Font(bold=True)
+        header = [
+            "User Answers ID",
+            "User ID",
+            "Survey ID",
+            "Question ID",
+            "Answer",
+            "Type"
+        ]
+
+        for col_num, column_title in enumerate(header, 1):
+            cell = ws.cell(row=1, column=col_num, value=column_title)
+            cell.font = header_font
+
+        row_num = 2
+        for user_answers in UserAnswers.objects.all():
+            for user_answer in UserAnswer.objects.filter(user_answers=user_answers):
+                ws.cell(row=row_num, column=1, value=user_answers.id)
+                ws.cell(row=row_num, column=2, value=user_answers.user.id)
+                ws.cell(row=row_num, column=3, value=user_answers.survey.id)
+                ws.cell(row=row_num, column=4, value=user_answer.question.id)
+                ws.cell(row=row_num, column=5, value=user_answer.answer)
+                ws.cell(row=row_num, column=6, value=user_answer.type)
+
+                row_num += 1
+
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename=user_answers_data.xlsx'
+        wb.save(response)
+
+        return response
+
+
+class GenerateCsvUserAnswersView(APIView):
+    def get(self, request):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="user_answers_data.csv"'
+
+        writer = csv.writer(response)
+
+        header = [
+            "User Answers ID",
+            "User ID",
+            "Survey ID",
+            "Question ID",
+            "Answer",
+            "Type"
+        ]
+        writer.writerow(header)
+
+        for user_answers in UserAnswers.objects.all():
+            for user_answer in UserAnswer.objects.filter(user_answers=user_answers):
+                writer.writerow([
+                    user_answers.id,
+                    user_answers.user.id,
+                    user_answers.survey.id,
+                    user_answer.question.id,
+                    user_answer.answer,
+                    user_answer.type
                 ])
 
         return response

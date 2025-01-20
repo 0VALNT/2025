@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 
 from . import views
 
@@ -12,4 +12,7 @@ urlpatterns = [
     path('change-password/', views.ChangePasswordView.as_view(), name='change_password'),
     path('download_excel/', views.GenerateExcelView.as_view(), name='download_excel'),
     path('download_csv/', views.GenerateCsvView.as_view(), name='download_csv'),
+    path('download_excel_user_answers/', views.GenerateExcelUserAnswersView.as_view(),
+         name='download_excel_user_answers'),
+    path('download_csv_user_answers/', views.GenerateCsvUserAnswersView.as_view(), name='download_csv_user_answers'),
 ]
