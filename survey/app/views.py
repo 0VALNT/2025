@@ -11,7 +11,8 @@ from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from django_filters import rest_framework as filters
 
 from .filters import SurveyFilter
-from .models import Survey, Answer, SomeModel
+from .models import Survey, Answer, SomeModel, AdminSurveyData, AdminStrQuestionSurveyData, \
+    AdminChoseQuestionSurveyData, AdminIntQuestionSurveyData, CountOfAnswers
 from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.views import APIView
 from . import serializers
@@ -107,9 +108,33 @@ class SeeMyForm(APIView):
         else:
             return 0
         post = request.POST
+        data = AdminSurveyData.objects.get(survey_id=survey.id)
         for question in survey.questions.all():
             if question.type == 'choices':
-                answer = Answer.objects.get(id=int(request.POST[f'{question.id}'])).title
+                answer = Answer.objects.get(id=int(request.POST[f'{question.id}']))
+                new = False
+                try:
+                    model = CountOfAnswers.objects.get(answer_id=answer.id)
+                    model.count_of_answer += 1
+                except:
+                    model = CountOfAnswers(answer_id=answer.id, count_of_answer=1)
+                    new = True
+                model.save()
+                try:
+                    question_data = AdminChoseQuestionSurveyData.objects.get(question_id=question.id)
+                    question_data.count += 1
+                    question_data.save()
+                    if new:
+                        question_data.help_model.add(model.id)
+                        question_data.save()
+                except:
+                    question_data = AdminChoseQuestionSurveyData(question=question, admin_survey=data,
+                                                                 count=1)
+                    question_data.save()
+                    question_data.help_model.add(model.id)
+                    question_data.save()
+
+                answer = answer.title
             elif question.type == 'multiple_choice':
                 answers = post.getlist(f'{question.id}')
                 answer = ''
@@ -117,10 +142,27 @@ class SeeMyForm(APIView):
                     answer += Answer.objects.get(id=int(i)).title + ' '
             else:
                 answer = request.POST[f'{question.id}']
+                if question.type == 'int':
+                    try:
+                        question_data = AdminIntQuestionSurveyData.objects.get(question_id=question.id)
+                    except:
+                        question_data = AdminIntQuestionSurveyData(question_id=question.id, admin_survey=data)
+                    question_data.count += 1
+                    question_data.amount += int(answer)
+                    question_data.save()
+                elif question.type == 'string':
+                    try:
+                        question_data = AdminStrQuestionSurveyData.objects.get(question_id=question.id)
+                    except:
+                        question_data = AdminStrQuestionSurveyData(question_id=question.id, admin_survey=data)
+                    question_data.count += 1
+                    question_data.amount += len(answer)
+                    question_data.save()
             serializer = serializers.UserAnswerSerializer(data={
                 'answer': answer,
                 'question': question.id,
-                'user_answers': obj.id
+                'user_answers': obj.id,
+                'type': question.type
             })
             if serializer.is_valid():
                 objec = serializer.save()

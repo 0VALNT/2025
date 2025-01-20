@@ -29,6 +29,7 @@ class QuestionSerializer(serializers.Serializer):
 
 class SurveySerializer(serializers.ModelSerializer):
     category = serializers.PrimaryKeyRelatedField(many=True, queryset=Category.objects.all())
+
     class Meta:
         model = Survey
         fields = '__all__'
@@ -50,10 +51,11 @@ class UserAnswerSerializer(serializers.Serializer):
     user_answers = serializers.PrimaryKeyRelatedField(queryset=UserAnswers.objects.all())
     question = serializers.PrimaryKeyRelatedField(queryset=Question.objects.all())
     answer = serializers.CharField(max_length=256)
+    type = serializers.CharField(max_length=32)
 
     class Meta:
         model = UserAnswer
-        fields = ['user_answers', 'question', 'answer']
+        fields = ['user_answers', 'question', 'answer', 'type']
 
     def create(self, validated_data):
         return UserAnswer(**validated_data)

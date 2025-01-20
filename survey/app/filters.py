@@ -2,6 +2,7 @@ import django_filters
 from .models import Survey, Question, User, Category
 from django.db.models import Q
 
+
 class SurveyFilter(django_filters.FilterSet):
     title = django_filters.CharFilter(lookup_expr='icontains')
     category = django_filters.ModelMultipleChoiceFilter(queryset=Category.objects.all())
